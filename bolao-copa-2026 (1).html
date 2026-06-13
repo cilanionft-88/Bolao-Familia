@@ -741,97 +741,148 @@ input.placar-num::-webkit-inner-spin-button { -webkit-appearance: none; }
 </div>
 
 <script>
+// ===== SUPABASE =====
+const SB_URL  = 'https://rtgvphjphafbgixadgpb.supabase.co';
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0Z3ZwaGpwaGFmYmdpeGFkZ3BiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNTM3NzEsImV4cCI6MjA5NjkyOTc3MX0.NbNe47L0EUFXo1ophoVYY_mv6N_VhoF4uRHyovN6WhU';
+const HDR     = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
+
+async function sbGet(tabela, params = '') {
+  const r = await fetch(`${SB_URL}/rest/v1/${tabela}?${params}`, { headers: HDR });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPost(tabela, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${tabela}`, {
+    method: 'POST', headers: { ...HDR, 'Prefer': 'return=minimal' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function sbPatch(tabela, params, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${tabela}?${params}`, {
+    method: 'PATCH', headers: { ...HDR, 'Prefer': 'return=minimal' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function sbDelete(tabela, params) {
+  const r = await fetch(`${SB_URL}/rest/v1/${tabela}?${params}`, {
+    method: 'DELETE', headers: HDR
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function sbUpsert(tabela, body) {
+  const r = await fetch(`${SB_URL}/rest/v1/${tabela}`, {
+    method: 'POST', headers: { ...HDR, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+
 // ===== JOGOS DO BRASIL — Copa 2026 =====
-// Datas/horas reais; permitimos edição ao cadastrar aposta
 const JOGOS = [
-  {
-    id: 'j1',
-    fase: 'Grupos',
-    adversario: 'Marrocos',
-    flag: '🇲🇦',
-    // hora de início padrão (usuário pode ajustar)
-    dataHoraDefault: '2026-06-13T16:00',
-    duracaoMin: 90 + 15,  // 90min jogo + 15min intervalo estimado
-    bloqueioExtraMin: 120 // +2h após o fim
-  },
-  {
-    id: 'j2',
-    fase: 'Grupos',
-    adversario: 'Haiti',
-    flag: '🇭🇹',
-    dataHoraDefault: '2026-06-17T19:00',
-    duracaoMin: 105,
-    bloqueioExtraMin: 120
-  },
-  {
-    id: 'j3',
-    fase: 'Grupos',
-    adversario: 'Escócia',
-    flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-    dataHoraDefault: '2026-06-22T16:00',
-    duracaoMin: 105,
-    bloqueioExtraMin: 120
-  },
+  { id: 'j1', fase: 'Grupos', adversario: 'Marrocos',  flag: '🇲🇦', dataHoraDefault: '2026-06-18T16:00', duracaoMin: 105, bloqueioExtraMin: 120 },
+  { id: 'j2', fase: 'Grupos', adversario: 'Haiti',     flag: '🇭🇹', dataHoraDefault: '2026-06-22T19:00', duracaoMin: 105, bloqueioExtraMin: 120 },
+  { id: 'j3', fase: 'Grupos', adversario: 'Escócia',   flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', dataHoraDefault: '2026-06-26T16:00', duracaoMin: 105, bloqueioExtraMin: 120 },
 ];
 
-// ===== ESTADO (memória da sessão) =====
+// ===== ESTADO LOCAL (cache) =====
 let E = {
-  membros: [],          // string[]
-  apostas: {},          // { jogoId: { nome: { br, adv, valor } } }
-  jogoHorarios: {},     // { jogoId: '2026-06-13T16:00' }  — preenchido ao apostar
-  jogoAtual: JOGOS[0].id,
-  tmp: null,
+  membros:      [],   // [{ nome }]
+  apostas:      {},   // { jogoId: [{ membro, gols_brasil, gols_adversario, valor }] }
+  jogoHorarios: {},   // { jogoId: 'YYYY-MM-DDTHH:MM' }
+  jogoAtual:    JOGOS[0].id,
+  tmp:          null,
 };
 
-function salvar() {
-  try { sessionStorage.setItem('bgf_26', JSON.stringify(E)); } catch(e) {}
-}
-function carregar() {
-  try {
-    const s = sessionStorage.getItem('bgf_26');
-    if (s) E = { ...E, ...JSON.parse(s) };
-  } catch(e) {}
+// ===== LOADING =====
+function loading(id, ativo, msg = '') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (ativo) el.innerHTML = `<div class="alerta alerta-info">⏳ ${msg || 'Carregando...'}</div>`;
 }
 
 // ===== TEMPO =====
 function agora() { return new Date(); }
 
-// Retorna o timestamp em que os resultados são liberados para um jogo
 function tsLibera(jogoId) {
   const j = JOGOS.find(x => x.id === jogoId);
   const dtStr = E.jogoHorarios[jogoId] || j.dataHoraDefault;
   const inicio = new Date(dtStr);
-  // libera: início + duração do jogo + bloqueio extra
   return new Date(inicio.getTime() + (j.duracaoMin + j.bloqueioExtraMin) * 60000);
 }
 
-// Retorna quantos minutos até a liberação (negativo = já liberou)
 function minutosParaLiberar(jogoId) {
   return (tsLibera(jogoId) - agora()) / 60000;
 }
 
 function formatarDuracao(min) {
   if (min <= 0) return 'liberado';
-  const h = Math.floor(min / 60);
-  const m = Math.round(min % 60);
-  if (h > 0) return `${h}h ${m}min`;
-  return `${m}min`;
+  const h = Math.floor(min / 60), m = Math.round(min % 60);
+  return h > 0 ? `${h}h ${m}min` : `${m}min`;
 }
 
 function formatarDT(dtStr) {
   if (!dtStr) return '—';
-  const d = new Date(dtStr);
-  return d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+  return new Date(dtStr).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
 }
 
 // ===== INICIALIZAR =====
-function init() {
-  carregar();
+async function init() {
+  mostrarCarregandoApp(true);
+  try {
+    await Promise.all([ carregarMembros(), carregarHorarios(), carregarTodasApostas() ]);
+  } catch(e) {
+    console.error(e);
+  }
+  mostrarCarregandoApp(false);
   renderChips();
   renderSelectRes();
   selecionarJogo(E.jogoAtual);
   atualizarSelectMembros();
   renderFamilia();
+}
+
+function mostrarCarregandoApp(ativo) {
+  let el = document.getElementById('app-loading');
+  if (ativo) {
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'app-loading';
+      el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.7);';
+      el.textContent = '⏳ Carregando bolão...';
+      document.body.appendChild(el);
+    }
+  } else {
+    if (el) el.remove();
+  }
+}
+
+// ===== CARREGAR DADOS DO SUPABASE =====
+async function carregarMembros() {
+  const rows = await sbGet('membros', 'order=criado_em.asc');
+  E.membros = rows.map(r => r.nome);
+}
+
+async function carregarHorarios() {
+  const rows = await sbGet('horarios', '');
+  E.jogoHorarios = {};
+  rows.forEach(r => { E.jogoHorarios[r.jogo_id] = r.data_hora; });
+}
+
+async function carregarTodasApostas() {
+  const rows = await sbGet('apostas', 'order=criado_em.asc');
+  E.apostas = {};
+  rows.forEach(r => {
+    if (!E.apostas[r.jogo_id]) E.apostas[r.jogo_id] = [];
+    E.apostas[r.jogo_id].push(r);
+  });
+}
+
+async function carregarApostasJogo(jogoId) {
+  const rows = await sbGet('apostas', `jogo_id=eq.${jogoId}&order=criado_em.asc`);
+  E.apostas[jogoId] = rows;
+  return rows;
 }
 
 // ===== CHIPS =====
@@ -852,30 +903,21 @@ function selecionarJogo(id) {
   document.getElementById('adv-nome').textContent = j.adversario;
   document.getElementById('jogo-meta-label').textContent = `${formatarDT(E.jogoHorarios[id] || j.dataHoraDefault)} · ${j.fase}`;
   document.getElementById('lbl-adv').textContent = j.flag + ' ' + j.adversario;
-
   document.querySelectorAll('.chip').forEach((el, i) => el.classList.toggle('ativo', JOGOS[i].id === id));
   atualizarStatus();
   limparAlerta('alerta-form');
-  salvar();
 }
 
 function atualizarStatus() {
   const id = E.jogoAtual;
-  const apostas = E.apostas[id] || {};
-  const qtd = Object.keys(apostas).length;
+  const apostas = E.apostas[id] || [];
+  const qtd = apostas.length;
   document.getElementById('status-count').textContent = `${qtd} palpite${qtd !== 1 ? 's' : ''}`;
-
   const min = minutosParaLiberar(id);
   const dot = document.getElementById('status-dot');
   const txt = document.getElementById('status-txt');
-
-  if (min > 0) {
-    dot.className = 'dot dot-verde';
-    txt.textContent = 'Apostas abertas';
-  } else {
-    dot.className = 'dot dot-amarelo';
-    txt.textContent = 'Apostas encerradas';
-  }
+  if (min > 0) { dot.className = 'dot dot-verde'; txt.textContent = 'Apostas abertas'; }
+  else          { dot.className = 'dot dot-amarelo'; txt.textContent = 'Apostas encerradas'; }
 }
 
 // ===== MEMBROS =====
@@ -886,18 +928,27 @@ function abrirModalNome() {
   setTimeout(() => document.getElementById('inp-nome').focus(), 300);
 }
 
-function salvarNome() {
+async function salvarNome() {
   const nome = document.getElementById('inp-nome').value.trim();
   if (nome.length < 2) { alerta('alerta-nome','erro','Digite um nome com pelo menos 2 letras.'); return; }
   if (E.membros.some(m => m.toLowerCase() === nome.toLowerCase())) {
     alerta('alerta-nome','erro','Este nome já está cadastrado!'); return;
   }
-  E.membros.push(nome);
-  salvar();
-  atualizarSelectMembros();
-  renderFamilia();
-  fecharModal('modal-nome');
-  document.getElementById('sel-apostador').value = nome;
+  alerta('alerta-nome','info','Salvando...');
+  try {
+    await sbPost('membros', { nome });
+    E.membros.push(nome);
+    atualizarSelectMembros();
+    renderFamilia();
+    fecharModal('modal-nome');
+    document.getElementById('sel-apostador').value = nome;
+  } catch(e) {
+    if (e.message.includes('unique') || e.message.includes('duplicate')) {
+      alerta('alerta-nome','erro','Este nome já existe!');
+    } else {
+      alerta('alerta-nome','erro','Erro ao salvar: ' + e.message);
+    }
+  }
 }
 
 function atualizarSelectMembros() {
@@ -917,7 +968,7 @@ function renderFamilia() {
     return;
   }
   el.innerHTML = E.membros.map(m => {
-    const qtdApostas = JOGOS.filter(j => E.apostas[j.id]?.[m]).length;
+    const qtdApostas = JOGOS.filter(j => (E.apostas[j.id] || []).some(a => a.membro === m)).length;
     return `<div class="apostador-item">
       <div>
         <div class="apostador-nome">${m}</div>
@@ -925,22 +976,26 @@ function renderFamilia() {
           ${qtdApostas > 0 ? `✓ ${qtdApostas} palpite${qtdApostas > 1 ? 's' : ''}` : 'Sem palpites ainda'}
         </div>
       </div>
-      <button onclick="removerMembro('${m}')" style="background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;font-size:18px;padding:4px;">✕</button>
+      <button onclick="removerMembro('${m}')" style="background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;font-size:18px;padding:4px;" title="Remover">✕</button>
     </div>`;
   }).join('');
 }
 
-function removerMembro(nome) {
+async function removerMembro(nome) {
   if (!confirm(`Remover "${nome}"? Todos os palpites desta pessoa serão apagados.`)) return;
-  E.membros = E.membros.filter(m => m !== nome);
-  JOGOS.forEach(j => { if (E.apostas[j.id]) delete E.apostas[j.id][nome]; });
-  salvar();
-  atualizarSelectMembros();
-  renderFamilia();
+  try {
+    await sbDelete('apostas', `membro=eq.${encodeURIComponent(nome)}`);
+    await sbDelete('membros', `nome=eq.${encodeURIComponent(nome)}`);
+    E.membros = E.membros.filter(m => m !== nome);
+    JOGOS.forEach(j => { if (E.apostas[j.id]) E.apostas[j.id] = E.apostas[j.id].filter(a => a.membro !== nome); });
+    atualizarSelectMembros();
+    renderFamilia();
+    atualizarStatus();
+  } catch(e) { alert('Erro ao remover: ' + e.message); }
 }
 
 // ===== APOSTAR =====
-function preConfirmar() {
+async function preConfirmar() {
   const nome = document.getElementById('sel-apostador').value;
   const br   = parseInt(document.getElementById('gols-br').value);
   const adv  = parseInt(document.getElementById('gols-adv').value);
@@ -949,13 +1004,17 @@ function preConfirmar() {
   if (!nome) { alerta('alerta-form','erro','Selecione seu nome na lista.'); return; }
   if (isNaN(br) || isNaN(adv)) { alerta('alerta-form','erro','Preencha o placar completo.'); return; }
   if (!val || val <= 0) { alerta('alerta-form','erro','Informe um valor válido para a aposta.'); return; }
-  if (E.apostas[E.jogoAtual]?.[nome]) {
-    alerta('alerta-form','erro',`${nome} já apostou neste jogo!`); return;
-  }
+
+  // Checar no banco se já apostou (para evitar race condition entre abas)
+  alerta('alerta-form','info','Verificando...');
+  try {
+    const rows = await sbGet('apostas', `membro=eq.${encodeURIComponent(nome)}&jogo_id=eq.${E.jogoAtual}`);
+    if (rows.length > 0) { alerta('alerta-form','erro',`${nome} já apostou neste jogo!`); return; }
+  } catch(e) { alerta('alerta-form','erro','Erro de conexão.'); return; }
+  limparAlerta('alerta-form');
 
   const j = JOGOS.find(x => x.id === E.jogoAtual);
   const dtAtual = E.jogoHorarios[E.jogoAtual] || j.dataHoraDefault;
-
   E.tmp = { nome, br, adv, val, jogoId: E.jogoAtual, dtJogo: dtAtual };
 
   document.getElementById('confirmar-resumo').innerHTML = `
@@ -967,30 +1026,44 @@ function preConfirmar() {
     <div style="font-size:24px;font-weight:900;color:var(--verde);">R$ ${val.toFixed(2).replace('.',',')}</div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
       <div style="font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);font-weight:800;text-transform:uppercase;margin-bottom:4px;">Resultado liberado após</div>
-      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.6);">${formatarDT(dtAtual)} + ~2h de jogo + 2h de bloqueio</div>
-    </div>
-  `;
-
-  limparAlerta('alerta-form');
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.6);">${formatarDT(dtAtual)} + ~1h45 de jogo + 2h de bloqueio</div>
+    </div>`;
   abrirModal('modal-confirmar');
 }
 
-function salvarAposta() {
+async function salvarAposta() {
   const { nome, br, adv, val, jogoId, dtJogo } = E.tmp;
-  if (!E.apostas[jogoId]) E.apostas[jogoId] = {};
-  E.apostas[jogoId][nome] = { br, adv, val };
-  if (!E.jogoHorarios[jogoId]) E.jogoHorarios[jogoId] = dtJogo;
-  salvar();
-  fecharModal('modal-confirmar');
-  atualizarStatus();
-  renderChips();
-
-  document.getElementById('gols-br').value = '0';
-  document.getElementById('gols-adv').value = '0';
-  document.getElementById('val-aposta').value = '';
-  document.getElementById('sel-apostador').value = '';
-
-  abrirModal('modal-ok');
+  const btnSalvar = document.querySelector('#modal-confirmar .btn-verde');
+  btnSalvar.disabled = true;
+  btnSalvar.textContent = 'Salvando...';
+  try {
+    await sbPost('apostas', { membro: nome, jogo_id: jogoId, gols_brasil: br, gols_adversario: adv, valor: val });
+    // Salvar horário se ainda não existir
+    if (!E.jogoHorarios[jogoId]) {
+      await sbUpsert('horarios', { jogo_id: jogoId, data_hora: dtJogo });
+      E.jogoHorarios[jogoId] = dtJogo;
+    }
+    if (!E.apostas[jogoId]) E.apostas[jogoId] = [];
+    E.apostas[jogoId].push({ membro: nome, jogo_id: jogoId, gols_brasil: br, gols_adversario: adv, valor: val });
+    fecharModal('modal-confirmar');
+    atualizarStatus();
+    renderChips();
+    document.getElementById('gols-br').value = '0';
+    document.getElementById('gols-adv').value = '0';
+    document.getElementById('val-aposta').value = '';
+    document.getElementById('sel-apostador').value = '';
+    abrirModal('modal-ok');
+  } catch(e) {
+    fecharModal('modal-confirmar');
+    if (e.message.includes('unique') || e.message.includes('duplicate')) {
+      alerta('alerta-form','erro',`${nome} já apostou neste jogo!`);
+    } else {
+      alerta('alerta-form','erro','Erro ao salvar aposta: ' + e.message);
+    }
+  } finally {
+    btnSalvar.disabled = false;
+    btnSalvar.textContent = '✓ Confirmar';
+  }
 }
 
 // ===== RESULTADO =====
@@ -1000,30 +1073,42 @@ function renderSelectRes() {
     JOGOS.map(j => `<option value="${j.id}">${j.fase}: Brasil vs ${j.adversario}</option>`).join('');
 }
 
-function carregarJogoRes(id) {
+async function carregarJogoRes(id) {
   const area = document.getElementById('res-area');
   area.innerHTML = '';
   if (!id) return;
 
+  area.innerHTML = '<div class="alerta alerta-info">⏳ Carregando...</div>';
+
+  // Buscar horário e apostas frescos do banco
+  try {
+    await carregarHorarios();
+    await carregarApostasJogo(id);
+  } catch(e) {
+    area.innerHTML = `<div class="alerta alerta-erro">⚠️ Erro de conexão: ${e.message}</div>`;
+    return;
+  }
+
   const j = JOGOS.find(x => x.id === id);
   const min = minutosParaLiberar(id);
-  const apostas = E.apostas[id] || {};
+  const apostas = E.apostas[id] || [];
   const dtHora = E.jogoHorarios[id] || j.dataHoraDefault;
 
   if (min > 0) {
-    // BLOQUEADO
     area.innerHTML = `
       <div class="bloqueado-box">
         <span class="bloqueado-icon">⏳</span>
         <div class="bloqueado-title">Resultado Bloqueado</div>
         <div class="bloqueado-sub">
-          O resultado de <strong>Brasil vs ${j.adversario}</strong> ficará disponível<br>
+          O resultado de <strong>Brasil vs ${j.adversario}</strong> ficará disponível em<br>
           <strong style="color:var(--amarelo);">~${formatarDuracao(min)}</strong> a partir de agora.<br><br>
-          Liberação prevista: <strong>${formatarDT(new Date(tsLibera(id).getTime()).toISOString().slice(0,16))}</strong>
+          Liberação prevista: <strong>${formatarDT(new Date(tsLibera(id)).toISOString().slice(0,16))}</strong><br><br>
+          <span style="opacity:0.6;">Apostas registradas: ${apostas.length}</span>
         </div>
       </div>
-      <div class="card mt10" style="margin-top:14px;">
+      <div class="card" style="margin-top:14px;">
         <div class="card-title">🗓️ Ajustar horário do jogo</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;font-weight:600;">Se o horário oficial mudar, atualize aqui. O bloqueio será recalculado.</div>
         <div class="campo">
           <label>Data e hora de início (Horário de Brasília)</label>
           <input type="datetime-local" id="inp-dt-jogo" value="${dtHora}">
@@ -1034,8 +1119,7 @@ function carregarJogoRes(id) {
     return;
   }
 
-  // LIBERADO — mostrar formulário de resultado
-  if (!Object.keys(apostas).length) {
+  if (!apostas.length) {
     area.innerHTML = `<div class="card"><div class="vazio"><span class="vazio-icon">😔</span><div class="vazio-text">Nenhum palpite registrado para este jogo.</div></div></div>`;
     return;
   }
@@ -1061,14 +1145,18 @@ function carregarJogoRes(id) {
     <div id="resultado-final"></div>`;
 }
 
-function atualizarHorario(id) {
+async function atualizarHorario(id) {
   const val = document.getElementById('inp-dt-jogo').value;
   if (!val) { alerta('alerta-dt','erro','Informe a data e hora do jogo.'); return; }
-  E.jogoHorarios[id] = val;
-  salvar();
-  renderChips();
-  alerta('alerta-dt','ok','Horário salvo! Recarregue o resultado para atualizar o bloqueio.');
-  setTimeout(() => carregarJogoRes(id), 1500);
+  try {
+    await sbUpsert('horarios', { jogo_id: id, data_hora: val });
+    E.jogoHorarios[id] = val;
+    renderChips();
+    alerta('alerta-dt','ok','Horário salvo! Recarregando...');
+    setTimeout(() => carregarJogoRes(id), 1200);
+  } catch(e) {
+    alerta('alerta-dt','erro','Erro ao salvar horário: ' + e.message);
+  }
 }
 
 function calcular(id) {
@@ -1077,15 +1165,15 @@ function calcular(id) {
   if (isNaN(resBr) || isNaN(resAdv)) { alerta('alerta-res','erro','Insira o placar completo.'); return; }
 
   const j = JOGOS.find(x => x.id === id);
-  const apostas = E.apostas[id] || {};
-  const total = Object.values(apostas).reduce((s, a) => s + a.val, 0);
+  const apostas = E.apostas[id] || [];
+  const total = apostas.reduce((s, a) => s + Number(a.valor), 0);
 
-  const exatos = Object.entries(apostas).filter(([, a]) => a.br === resBr && a.adv === resAdv);
+  const exatos = apostas.filter(a => a.gols_brasil === resBr && a.gols_adversario === resAdv);
   const premio = exatos.length ? total / exatos.length : 0;
 
   let heroHtml = '';
   if (exatos.length) {
-    const nomes = exatos.map(([n]) => n);
+    const nomes = exatos.map(a => a.membro);
     heroHtml = `
       <div class="resultado-hero">
         <span class="trophy-big pulse">${exatos.length > 1 ? '🏆🏆' : '🏆'}</span>
@@ -1116,16 +1204,15 @@ function calcular(id) {
       </div>`;
   }
 
-  // Ranking
-  const entries = Object.entries(apostas).map(([nome, a]) => {
-    const exato   = a.br === resBr && a.adv === resAdv;
+  const entries = apostas.map(a => {
+    const exato   = a.gols_brasil === resBr && a.gols_adversario === resAdv;
     const parcial = !exato && (
-      (resBr > resAdv && a.br > a.adv) ||
-      (resBr < resAdv && a.br < a.adv) ||
-      (resBr === resAdv && a.br === a.adv)
+      (resBr > resAdv && a.gols_brasil > a.gols_adversario) ||
+      (resBr < resAdv && a.gols_brasil < a.gols_adversario) ||
+      (resBr === resAdv && a.gols_brasil === a.gols_adversario)
     );
-    return { nome, ...a, exato, parcial };
-  }).sort((a,b) => (b.exato - a.exato) || (b.parcial - a.parcial) || (b.val - a.val));
+    return { ...a, exato, parcial };
+  }).sort((a,b) => (b.exato - a.exato) || (b.parcial - a.parcial) || (b.valor - a.valor));
 
   const rankingHtml = `
     <div class="card">
@@ -1134,15 +1221,15 @@ function calcular(id) {
         <div class="rk-item ${e.exato ? 'win' : ''}">
           <div class="rk-pos">${i+1}</div>
           <div class="rk-info">
-            <div class="rk-nome">${e.nome} ${e.exato ? '🏆' : ''}</div>
+            <div class="rk-nome">${e.membro} ${e.exato ? '🏆' : ''}</div>
             <div class="rk-palpite">
-              🇧🇷 ${e.br} × ${e.adv} ${j.flag}
+              🇧🇷 ${e.gols_brasil} × ${e.gols_adversario} ${j.flag}
               <span class="rk-badge ${e.exato ? 'exato' : e.parcial ? 'parcial' : 'errou'}">
                 · ${e.exato ? '✓ EXATO' : e.parcial ? '≈ RESULTADO' : '✗ ERROU'}
               </span>
             </div>
           </div>
-          <div class="rk-valor">R$ ${e.val.toFixed(2).replace('.',',')}</div>
+          <div class="rk-valor">R$ ${Number(e.valor).toFixed(2).replace('.',',')}</div>
         </div>`).join('')}
       <div style="display:flex;justify-content:space-between;padding-top:14px;margin-top:6px;border-top:1px solid rgba(255,255,255,0.07);font-size:12px;font-weight:800;">
         <span style="color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Total apostado</span>
@@ -1175,21 +1262,17 @@ function fecharModal(id) {
   document.getElementById(id).classList.remove('open');
   document.body.style.overflow = '';
 }
-
 function alerta(id, tipo, msg) {
-  document.getElementById(id).innerHTML =
-    `<div class="alerta alerta-${tipo === 'erro' ? 'erro' : tipo === 'ok' ? 'ok' : 'info'}">${tipo === 'erro' ? '⚠️' : '✓'} ${msg}</div>`;
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = `<div class="alerta alerta-${tipo === 'erro' ? 'erro' : tipo === 'ok' ? 'ok' : 'info'}">${tipo === 'erro' ? '⚠️' : '✓'} ${msg}</div>`;
 }
 function limparAlerta(id) {
   const el = document.getElementById(id); if (el) el.innerHTML = '';
 }
 
-// Fechar modais clicando fora
 document.querySelectorAll('.overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) fecharModal(o.id); });
 });
-
-// Enter em inputs de modal
 document.getElementById('inp-nome').addEventListener('keydown', e => { if (e.key === 'Enter') salvarNome(); });
 
 init();
