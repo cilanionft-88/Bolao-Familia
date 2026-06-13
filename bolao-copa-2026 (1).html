@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bolão da Grande Família · Copa 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===== TOKENS — identidade FIFA WC 26 ===== */
+:root {
+  --verde:      #00A850;
+  --verde2:     #007A38;
+  --verde3:     #004D24;
+  --amarelo:    #C8E300;   /* lime‑yellow da paleta oficial */
+  --vermelho:   #E8000D;
+  --roxo:       #6229C8;
+  --azul:       #003DA5;
+  --ciano:      #00B0C8;
+  --preto:      #0A0A0A;
+  --branco:     #FFFFFF;
+  --dourado:    #C9A84C;
+  --cinza-card: rgba(255,255,255,0.06);
+  --borda:      rgba(255,255,255,0.10);
+  --sombra:     0 8px 32px rgba(0,0,0,0.35);
+}
+
+body {
+  font-family: 'Noto Sans', sans-serif;
+  background: var(--preto);
+  color: var(--branco);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== FUNDO PADRÃO — raias curvas Copa 26 ===== */
+.bg-pattern {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+}
+.bg-pattern svg { width: 100%; height: 100%; }
+
+/* ===== HERO ===== */
+.hero {
+  position: relative; z-index: 1;
+  text-align: center;
+  padding: 36px 20px 28px;
+  overflow: hidden;
+}
+
+/* "26" tipografia gigante Copa 26 */
+.hero-26 {
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 900;
+  font-size: clamp(120px, 38vw, 260px);
+  line-height: 0.82;
+  letter-spacing: -6px;
+  color: var(--branco);
+  position: relative;
+  display: inline-block;
+  /* espelha o visual arredondado/bold do evento */
+  -webkit-text-stroke: 0px;
+  text-shadow:
+    0 0 80px rgba(0,168,80,0.5),
+    0 0 160px rgba(0,168,80,0.2);
+}
+
+/* trofeu svg sobreposto */
+.hero-trophy {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -44%);
+  width: clamp(70px, 18vw, 130px);
+  pointer-events: none;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.7));
+}
+
+.hero-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--preto);
+  background: var(--amarelo);
+  border-radius: 4px;
+  padding: 4px 12px;
+  margin-bottom: 14px;
+}
+
+.hero-title {
+  font-weight: 900;
+  font-size: clamp(22px, 6vw, 36px);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  margin-top: 14px;
+  text-transform: uppercase;
+}
+
+.hero-title em {
+  font-style: normal;
+  color: var(--amarelo);
+}
+
+.hero-sub {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+
+/* ===== TABS ===== */
+.tabs-wrap {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--borda);
+  padding: 0 16px;
+}
+
+.tabs {
+  display: flex;
+  max-width: 600px;
+  margin: 0 auto;
+  gap: 0;
+}
+
+.tab {
+  flex: 1;
+  padding: 14px 8px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: rgba(255,255,255,0.4);
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+
+.tab.ativo {
+  color: var(--amarelo);
+  border-bottom-color: var(--amarelo);
+}
+
+/* ===== CONTAINER ===== */
+.container {
+  position: relative; z-index: 1;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 16px 80px;
+}
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--cinza-card);
+  border: 1px solid var(--borda);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 14px;
+  backdrop-filter: blur(16px);
+}
+
+.card-verde  { border-color: rgba(0,168,80,0.3); background: rgba(0,168,80,0.08); }
+.card-roxo   { border-color: rgba(98,41,200,0.4); background: rgba(98,41,200,0.1); }
+.card-amarelo { border-color: rgba(200,227,0,0.3); background: rgba(200,227,0,0.06); }
+
+.card-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--amarelo);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== JOGO CHIPS ===== */
+.chips-scroll {
+  display: flex; gap: 10px;
+  overflow-x: auto; padding-bottom: 4px;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  margin-bottom: 20px;
+}
+.chips-scroll::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+  min-width: 90px;
+}
+.chip:hover  { border-color: var(--verde); }
+.chip.ativo  { border-color: var(--amarelo); background: rgba(200,227,0,0.1); }
+
+.chip-fase  { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 4px; }
+.chip-flags { font-size: 20px; margin-bottom: 2px; }
+.chip-data  { font-size: 9px; color: rgba(255,255,255,0.4); font-weight: 600; }
+
+/* ===== JOGO DISPLAY ===== */
+.jogo-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0,0,0,0.35);
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.time-bloco { text-align: center; flex: 1; }
+.time-flag  { font-size: 44px; line-height: 1; }
+.time-nome  { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-top: 6px; }
+
+.vs-bloco { text-align: center; padding: 0 8px; }
+.vs-text  { font-size: 28px; font-weight: 900; color: var(--amarelo); display: block; }
+.jogo-meta { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 4px; font-weight: 600; }
+
+/* ===== STATUS ===== */
+.status-row {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; font-weight: 700;
+  background: rgba(0,0,0,0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  gap: 8px;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
+.dot-verde  { background: var(--verde); box-shadow: 0 0 8px var(--verde); }
+.dot-amarelo{ background: var(--amarelo); box-shadow: 0 0 8px var(--amarelo); }
+.dot-cinza  { background: rgba(255,255,255,0.2); }
+
+/* ===== HORARIO INFO ===== */
+.horario-bloqueio {
+  background: rgba(98,41,200,0.15);
+  border: 1px solid rgba(98,41,200,0.3);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+.horario-bloqueio strong { color: var(--amarelo); }
+
+/* ===== INPUTS ===== */
+label {
+  display: block;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 8px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"],
+select {
+  width: 100%;
+  background: rgba(0,0,0,0.35);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  color: var(--branco);
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 14px; font-weight: 600;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  -webkit-appearance: none; appearance: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--amarelo);
+  box-shadow: 0 0 0 3px rgba(200,227,0,0.15);
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.5); cursor: pointer; }
+select option { background: #1a1a2e; }
+
+.campo { margin-bottom: 16px; }
+
+.select-wrap { position: relative; }
+.select-wrap::after { content: '▾'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--amarelo); pointer-events: none; font-size: 13px; }
+
+/* ===== PLACAR INPUTS ===== */
+.placar-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.placar-side { flex: 1; }
+.placar-label-mini { font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.35); text-align: center; margin-bottom: 6px; }
+
+input.placar-num {
+  text-align: center;
+  font-size: 44px;
+  font-weight: 900;
+  padding: 10px;
+  height: 78px;
+  letter-spacing: -2px;
+}
+
+input.placar-num::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+.placar-sep {
+  font-size: 32px; font-weight: 900;
+  color: rgba(255,255,255,0.2);
+  padding-top: 20px;
+  flex-shrink: 0;
+}
+
+/* ===== VALOR ===== */
+.valor-wrap { position: relative; }
+.valor-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 800; color: var(--amarelo); font-size: 15px; z-index: 1; }
+.valor-wrap input { padding-left: 40px; font-size: 18px; font-weight: 800; }
+
+/* ===== BOTÕES ===== */
+.btn {
+  width: 100%; padding: 16px;
+  border: none; border-radius: 12px;
+  font-family: 'Noto Sans', sans-serif;
+  font-weight: 900; font-size: 13px;
+  letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s, opacity .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn:hover:not(:disabled) { transform: translateY(-2px); }
+.btn:active:not(:disabled) { transform: translateY(0); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-verde  { background: var(--verde); color: var(--preto); box-shadow: 0 4px 20px rgba(0,168,80,0.4); }
+.btn-verde:hover:not(:disabled) { box-shadow: 0 6px 28px rgba(0,168,80,0.6); }
+
+.btn-amarelo { background: var(--amarelo); color: var(--preto); box-shadow: 0 4px 20px rgba(200,227,0,0.3); }
+.btn-amarelo:hover:not(:disabled) { box-shadow: 0 6px 28px rgba(200,227,0,0.5); }
+
+.btn-ghost {
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6);
+  font-size: 11px;
+}
+.btn-ghost:hover:not(:disabled) { border-color: rgba(255,255,255,0.35); color: var(--branco); }
+
+.btn-sm { width: auto; padding: 10px 20px; font-size: 11px; }
+
+/* ===== APOSTADORES ===== */
+.apostador-item {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.apostador-nome { font-weight: 700; font-size: 15px; }
+.apostador-meta { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+.apostador-meta.ok { color: var(--verde); }
+
+.count-badge {
+  background: var(--verde); color: var(--preto);
+  font-weight: 900; font-size: 12px;
+  padding: 2px 10px; border-radius: 20px;
+  margin-left: auto;
+}
+
+/* ===== DIVIDER ===== */
+.div { height: 1px; background: rgba(255,255,255,0.07); margin: 18px 0; }
+
+/* ===== ALERTAS ===== */
+.alerta {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 12px; font-weight: 700;
+  margin-bottom: 14px;
+  display: flex; align-items: flex-start; gap: 8px;
+  line-height: 1.5;
+}
+.alerta-erro { background: rgba(232,0,13,0.15); border: 1px solid rgba(232,0,13,0.4); color: #ff7070; }
+.alerta-ok   { background: rgba(0,168,80,0.15); border: 1px solid rgba(0,168,80,0.4); color: #6effa8; }
+.alerta-info { background: rgba(200,227,0,0.1); border: 1px solid rgba(200,227,0,0.25); color: var(--amarelo); }
+
+/* ===== MODAL ===== */
+.overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: #111827;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 32px 26px;
+  width: 100%; max-width: 420px;
+  transform: translateY(20px);
+  transition: transform .25s;
+}
+.overlay.open .modal { transform: translateY(0); }
+
+.modal-title {
+  font-size: 18px; font-weight: 900;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--amarelo);
+  margin-bottom: 20px; text-align: center;
+}
+
+/* ===== RESULTADO ===== */
+.resultado-hero {
+  background: linear-gradient(135deg, rgba(200,227,0,0.12) 0%, rgba(0,168,80,0.1) 100%);
+  border: 1.5px solid rgba(200,227,0,0.3);
+  border-radius: 20px;
+  padding: 28px 20px;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.trophy-big { font-size: 64px; display: block; margin-bottom: 12px; }
+.res-titulo { font-size: 13px; font-weight: 800; letter-spacing: 3px; color: rgba(255,255,255,0.5); text-transform: uppercase; margin-bottom: 8px; }
+.res-nome   { font-size: clamp(28px,8vw,44px); font-weight: 900; color: var(--amarelo); line-height: 1.1; }
+.res-premio { font-size: 24px; font-weight: 900; color: var(--verde); margin-top: 10px; }
+.res-pozo   { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 4px; font-weight: 700; }
+
+.placar-pill {
+  display: inline-flex; align-items: center; gap: 14px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 14px;
+  padding: 14px 24px;
+  margin: 16px auto;
+  font-weight: 900;
+}
+.placar-pill .num { font-size: 56px; color: var(--branco); line-height: 1; }
+.placar-pill .sep { font-size: 28px; color: rgba(255,255,255,0.2); }
+.placar-pill .fl  { font-size: 30px; }
+
+/* ===== RANKING ===== */
+.rk-item {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 8px;
+}
+.rk-item.win {
+  background: linear-gradient(135deg, rgba(200,227,0,0.12) 0%, rgba(0,168,80,0.1) 100%);
+  border-color: rgba(200,227,0,0.4);
+}
+.rk-pos { font-size: 16px; font-weight: 900; color: rgba(255,255,255,0.2); width: 24px; text-align: center; flex-shrink: 0; }
+.rk-item.win .rk-pos { color: var(--amarelo); }
+.rk-info { flex: 1; }
+.rk-nome { font-weight: 700; font-size: 14px; }
+.rk-palpite { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+.rk-badge { font-size: 10px; font-weight: 800; letter-spacing: 1px; }
+.rk-badge.exato { color: var(--verde); }
+.rk-badge.parcial { color: var(--amarelo); }
+.rk-badge.errou { color: rgba(255,255,255,0.25); }
+.rk-valor { font-size: 15px; font-weight: 900; color: var(--verde); }
+.rk-item.win .rk-valor { color: var(--amarelo); font-size: 17px; }
+
+/* ===== VAZIO ===== */
+.vazio { text-align: center; padding: 36px 20px; }
+.vazio-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+.vazio-text { font-size: 13px; color: rgba(255,255,255,0.3); font-weight: 600; }
+
+/* ===== BLOQUEADO ===== */
+.bloqueado-box {
+  background: rgba(98,41,200,0.15);
+  border: 1.5px solid rgba(98,41,200,0.4);
+  border-radius: 16px;
+  padding: 28px 20px;
+  text-align: center;
+}
+.bloqueado-icon { font-size: 48px; display: block; margin-bottom: 14px; }
+.bloqueado-title { font-size: 16px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--amarelo); margin-bottom: 8px; }
+.bloqueado-sub { font-size: 13px; color: rgba(255,255,255,0.5); font-weight: 600; line-height: 1.6; }
+.bloqueado-sub strong { color: var(--branco); }
+
+/* ===== UTIL ===== */
+.hidden { display: none !important; }
+.mt10 { margin-top: 10px; }
+.mt16 { margin-top: 16px; }
+.row2 { display: flex; gap: 10px; }
+.row2 > * { flex: 1; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.fu { animation: fadeUp .3s ease forwards; }
+
+@keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+.pulse { animation: pulse 2s ease infinite; }
+
+@media(max-width:400px) {
+  .hero-26 { font-size: 110px; }
+  .card { padding: 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- FUNDO PADRÃO COPA 26 -->
+<div class="bg-pattern" aria-hidden="true">
+<svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <!-- raias curvas verdes — linguagem "Unify" Copa 26 -->
+  <rect width="390" height="844" fill="#0A0A0A"/>
+  <ellipse cx="390" cy="0" rx="340" ry="300" fill="none" stroke="rgba(0,168,80,0.18)" stroke-width="80"/>
+  <ellipse cx="390" cy="0" rx="220" ry="190" fill="none" stroke="rgba(0,168,80,0.12)" stroke-width="60"/>
+  <ellipse cx="0" cy="844" rx="320" ry="280" fill="none" stroke="rgba(200,227,0,0.08)" stroke-width="70"/>
+  <ellipse cx="0" cy="844" rx="180" ry="160" fill="none" stroke="rgba(200,227,0,0.05)" stroke-width="50"/>
+  <circle cx="195" cy="422" r="380" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+</svg>
+</div>
+
+<!-- ===== HERO ===== -->
+<header class="hero">
+  <div class="hero-tag">FIFA World Cup 2026™ · Palpite de Placar Exato</div>
+
+  <!-- "26" tipográfico com troféu sobreposto -->
+  <div style="position:relative;display:inline-block;line-height:1;">
+    <div class="hero-26">26</div>
+    <!-- troféu SVG vetorial -->
+    <svg class="hero-trophy" viewBox="0 0 80 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- base -->
+      <rect x="22" y="118" width="36" height="8" rx="2" fill="#8B6914"/>
+      <rect x="18" y="126" width="44" height="8" rx="2" fill="#A07820"/>
+      <!-- haste -->
+      <rect x="35" y="102" width="10" height="18" rx="2" fill="#C9A84C"/>
+      <!-- corpo da taça -->
+      <path d="M20 30 Q10 50 12 65 Q15 85 40 95 Q65 85 68 65 Q70 50 60 30 Z" fill="url(#grad1)"/>
+      <!-- borda da taça -->
+      <path d="M20 30 L60 30" stroke="#F0D070" stroke-width="3" stroke-linecap="round"/>
+      <!-- alças -->
+      <path d="M20 35 Q4 45 8 62 Q10 72 20 72" stroke="#C9A84C" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M60 35 Q76 45 72 62 Q70 72 60 72" stroke="#C9A84C" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- globo topo -->
+      <circle cx="40" cy="24" r="12" fill="url(#grad2)" stroke="#F0D070" stroke-width="1.5"/>
+      <!-- continentes simplificados -->
+      <path d="M34 20 Q37 17 40 20 Q43 23 40 26 Q37 27 34 24 Z" fill="rgba(0,100,50,0.6)"/>
+      <path d="M42 22 Q45 20 47 23 Q46 26 43 25 Z" fill="rgba(0,100,50,0.5)"/>
+      <!-- brilho -->
+      <circle cx="38" cy="20" r="3" fill="rgba(255,255,255,0.35)"/>
+      <defs>
+        <linearGradient id="grad1" x1="40" y1="30" x2="40" y2="95" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#F0D070"/>
+          <stop offset="40%" stop-color="#C9A84C"/>
+          <stop offset="100%" stop-color="#8B6914"/>
+        </linearGradient>
+        <linearGradient id="grad2" x1="40" y1="12" x2="40" y2="36" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#F0D070"/>
+          <stop offset="100%" stop-color="#C9A84C"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="hero-title">Bolão da<br><em>Grande Família</em></div>
+  <p class="hero-sub">🇧🇷 Brasil na Copa · 2026</p>
+</header>
+
+<!-- ===== TABS ===== -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab ativo" onclick="mudarAba('apostar')">⚽ Apostar</button>
+    <button class="tab" onclick="mudarAba('resultado')">🏆 Resultado</button>
+    <button class="tab" onclick="mudarAba('familia')">👥 Família</button>
+  </div>
+</div>
+
+<!-- ===== CONTEÚDO ===== -->
+<div class="container">
+
+  <!-- ========== ABA APOSTAR ========== -->
+  <div id="aba-apostar" class="fu">
+
+    <div class="card card-verde">
+      <div class="card-title">🗓️ Escolha o Jogo</div>
+      <div class="chips-scroll" id="chips-jogos"></div>
+
+      <div class="jogo-display">
+        <div class="time-bloco">
+          <div class="time-flag">🇧🇷</div>
+          <div class="time-nome">Brasil</div>
+        </div>
+        <div class="vs-bloco">
+          <span class="vs-text">VS</span>
+          <div class="jogo-meta" id="jogo-meta-label">—</div>
+        </div>
+        <div class="time-bloco" id="adv-bloco">
+          <div class="time-flag" id="adv-flag">🌍</div>
+          <div class="time-nome" id="adv-nome">—</div>
+        </div>
+      </div>
+
+      <div class="status-row" id="status-row">
+        <div style="display:flex;align-items:center;">
+          <span class="dot dot-verde" id="status-dot"></span>
+          <span id="status-txt" style="font-size:11px;font-weight:700;">—</span>
+        </div>
+        <span id="status-count" style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:600;"></span>
+      </div>
+    </div>
+
+    <div class="card" id="card-form">
+      <div class="card-title">🎯 Seu Palpite</div>
+
+      <div class="campo">
+        <label>Seu nome</label>
+        <div class="select-wrap">
+          <select id="sel-apostador">
+            <option value="">Selecione seu nome...</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-ghost btn-sm mt10" onclick="abrirModalNome()" style="margin-bottom:18px;">+ Cadastrar novo membro</button>
+
+      <div class="div"></div>
+
+      <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);text-align:center;margin-bottom:14px;">Palpite de placar exato</div>
+
+      <div class="placar-row">
+        <div class="placar-side">
+          <div class="placar-label-mini">🇧🇷 Brasil</div>
+          <input class="placar-num" type="number" id="gols-br" min="0" max="20" value="0">
+        </div>
+        <div class="placar-sep">×</div>
+        <div class="placar-side">
+          <div class="placar-label-mini" id="lbl-adv">Adversário</div>
+          <input class="placar-num" type="number" id="gols-adv" min="0" max="20" value="0">
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Valor da aposta</label>
+        <div class="valor-wrap">
+          <span class="valor-prefix">R$</span>
+          <input type="number" id="val-aposta" min="1" step="0.01" placeholder="0,00">
+        </div>
+      </div>
+
+      <div id="alerta-form"></div>
+      <button class="btn btn-verde" onclick="preConfirmar()">✓ Confirmar Palpite</button>
+    </div>
+
+  </div>
+
+  <!-- ========== ABA RESULTADO ========== -->
+  <div id="aba-resultado" class="hidden fu">
+
+    <div class="card card-verde">
+      <div class="card-title">⚙️ Selecionar Jogo</div>
+      <div class="campo">
+        <div class="select-wrap">
+          <select id="sel-jogo-res" onchange="carregarJogoRes(this.value)">
+            <option value="">Escolha o jogo...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="res-area"></div>
+
+  </div>
+
+  <!-- ========== ABA FAMÍLIA ========== -->
+  <div id="aba-familia" class="hidden fu">
+    <div class="card">
+      <div class="card-title">
+        👥 Membros Cadastrados
+        <span class="count-badge" id="count-fam">0</span>
+      </div>
+      <div id="lista-familia"></div>
+      <div class="mt16">
+        <button class="btn btn-verde" onclick="abrirModalNome()">+ Cadastrar novo membro</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ===== MODAL NOVO MEMBRO ===== -->
+<div class="overlay" id="modal-nome">
+  <div class="modal">
+    <div class="modal-title">👤 Novo Membro</div>
+    <div class="campo">
+      <label>Nome</label>
+      <input type="text" id="inp-nome" placeholder="Digite o nome..." maxlength="30">
+    </div>
+    <div id="alerta-nome"></div>
+    <div class="row2 mt16">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-nome')">Cancelar</button>
+      <button class="btn btn-verde" onclick="salvarNome()">✓ Cadastrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL CONFIRMAR PALPITE ===== -->
+<div class="overlay" id="modal-confirmar">
+  <div class="modal">
+    <div class="modal-title">🔒 Confirmar Palpite</div>
+    <div id="confirmar-resumo" style="background:rgba(0,0,0,0.3);border-radius:14px;padding:18px;margin-bottom:18px;text-align:center;line-height:1.9;font-size:14px;"></div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:18px;line-height:1.6;font-weight:600;">
+      🔒 Seu palpite ficará <strong style="color:var(--amarelo)">oculto</strong> dos outros participantes até 2h após o término do jogo.
+    </div>
+    <div class="row2">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-confirmar')">Voltar</button>
+      <button class="btn btn-verde" onclick="salvarAposta()">✓ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL SUCESSO ===== -->
+<div class="overlay" id="modal-ok">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:64px;margin-bottom:16px;">✅</div>
+    <div class="modal-title">Palpite Registrado!</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:22px;font-weight:600;">Boa sorte no bolão, família! 🇧🇷</div>
+    <button class="btn btn-amarelo" onclick="fecharModal('modal-ok')">Fechar</button>
+  </div>
+</div>
+
+<script>
+// ===== JOGOS DO BRASIL — Copa 2026 =====
+// Datas/horas reais; permitimos edição ao cadastrar aposta
+const JOGOS = [
+  {
+    id: 'j1',
+    fase: 'Grupos',
+    adversario: 'Marrocos',
+    flag: '🇲🇦',
+    // hora de início padrão (usuário pode ajustar)
+    dataHoraDefault: '2026-06-13T16:00',
+    duracaoMin: 90 + 15,  // 90min jogo + 15min intervalo estimado
+    bloqueioExtraMin: 120 // +2h após o fim
+  },
+  {
+    id: 'j2',
+    fase: 'Grupos',
+    adversario: 'Haiti',
+    flag: '🇭🇹',
+    dataHoraDefault: '2026-06-17T19:00',
+    duracaoMin: 105,
+    bloqueioExtraMin: 120
+  },
+  {
+    id: 'j3',
+    fase: 'Grupos',
+    adversario: 'Escócia',
+    flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+    dataHoraDefault: '2026-06-22T16:00',
+    duracaoMin: 105,
+    bloqueioExtraMin: 120
+  },
+];
+
+// ===== ESTADO (memória da sessão) =====
+let E = {
+  membros: [],          // string[]
+  apostas: {},          // { jogoId: { nome: { br, adv, valor } } }
+  jogoHorarios: {},     // { jogoId: '2026-06-13T16:00' }  — preenchido ao apostar
+  jogoAtual: JOGOS[0].id,
+  tmp: null,
+};
+
+function salvar() {
+  try { sessionStorage.setItem('bgf_26', JSON.stringify(E)); } catch(e) {}
+}
+function carregar() {
+  try {
+    const s = sessionStorage.getItem('bgf_26');
+    if (s) E = { ...E, ...JSON.parse(s) };
+  } catch(e) {}
+}
+
+// ===== TEMPO =====
+function agora() { return new Date(); }
+
+// Retorna o timestamp em que os resultados são liberados para um jogo
+function tsLibera(jogoId) {
+  const j = JOGOS.find(x => x.id === jogoId);
+  const dtStr = E.jogoHorarios[jogoId] || j.dataHoraDefault;
+  const inicio = new Date(dtStr);
+  // libera: início + duração do jogo + bloqueio extra
+  return new Date(inicio.getTime() + (j.duracaoMin + j.bloqueioExtraMin) * 60000);
+}
+
+// Retorna quantos minutos até a liberação (negativo = já liberou)
+function minutosParaLiberar(jogoId) {
+  return (tsLibera(jogoId) - agora()) / 60000;
+}
+
+function formatarDuracao(min) {
+  if (min <= 0) return 'liberado';
+  const h = Math.floor(min / 60);
+  const m = Math.round(min % 60);
+  if (h > 0) return `${h}h ${m}min`;
+  return `${m}min`;
+}
+
+function formatarDT(dtStr) {
+  if (!dtStr) return '—';
+  const d = new Date(dtStr);
+  return d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+
+// ===== INICIALIZAR =====
+function init() {
+  carregar();
+  renderChips();
+  renderSelectRes();
+  selecionarJogo(E.jogoAtual);
+  atualizarSelectMembros();
+  renderFamilia();
+}
+
+// ===== CHIPS =====
+function renderChips() {
+  document.getElementById('chips-jogos').innerHTML = JOGOS.map(j => `
+    <div class="chip ${j.id === E.jogoAtual ? 'ativo' : ''}" onclick="selecionarJogo('${j.id}')">
+      <div class="chip-fase">${j.fase}</div>
+      <div class="chip-flags">🇧🇷${j.flag}</div>
+      <div class="chip-data">${formatarDT(E.jogoHorarios[j.id] || j.dataHoraDefault)}</div>
+    </div>
+  `).join('');
+}
+
+function selecionarJogo(id) {
+  E.jogoAtual = id;
+  const j = JOGOS.find(x => x.id === id);
+  document.getElementById('adv-flag').textContent = j.flag;
+  document.getElementById('adv-nome').textContent = j.adversario;
+  document.getElementById('jogo-meta-label').textContent = `${formatarDT(E.jogoHorarios[id] || j.dataHoraDefault)} · ${j.fase}`;
+  document.getElementById('lbl-adv').textContent = j.flag + ' ' + j.adversario;
+
+  document.querySelectorAll('.chip').forEach((el, i) => el.classList.toggle('ativo', JOGOS[i].id === id));
+  atualizarStatus();
+  limparAlerta('alerta-form');
+  salvar();
+}
+
+function atualizarStatus() {
+  const id = E.jogoAtual;
+  const apostas = E.apostas[id] || {};
+  const qtd = Object.keys(apostas).length;
+  document.getElementById('status-count').textContent = `${qtd} palpite${qtd !== 1 ? 's' : ''}`;
+
+  const min = minutosParaLiberar(id);
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-txt');
+
+  if (min > 0) {
+    dot.className = 'dot dot-verde';
+    txt.textContent = 'Apostas abertas';
+  } else {
+    dot.className = 'dot dot-amarelo';
+    txt.textContent = 'Apostas encerradas';
+  }
+}
+
+// ===== MEMBROS =====
+function abrirModalNome() {
+  document.getElementById('inp-nome').value = '';
+  document.getElementById('alerta-nome').innerHTML = '';
+  abrirModal('modal-nome');
+  setTimeout(() => document.getElementById('inp-nome').focus(), 300);
+}
+
+function salvarNome() {
+  const nome = document.getElementById('inp-nome').value.trim();
+  if (nome.length < 2) { alerta('alerta-nome','erro','Digite um nome com pelo menos 2 letras.'); return; }
+  if (E.membros.some(m => m.toLowerCase() === nome.toLowerCase())) {
+    alerta('alerta-nome','erro','Este nome já está cadastrado!'); return;
+  }
+  E.membros.push(nome);
+  salvar();
+  atualizarSelectMembros();
+  renderFamilia();
+  fecharModal('modal-nome');
+  document.getElementById('sel-apostador').value = nome;
+}
+
+function atualizarSelectMembros() {
+  const sel = document.getElementById('sel-apostador');
+  const v = sel.value;
+  sel.innerHTML = '<option value="">Selecione seu nome...</option>' +
+    E.membros.map(m => `<option value="${m}">${m}</option>`).join('');
+  sel.value = v;
+  document.getElementById('count-fam').textContent = E.membros.length;
+}
+
+function renderFamilia() {
+  const el = document.getElementById('lista-familia');
+  document.getElementById('count-fam').textContent = E.membros.length;
+  if (!E.membros.length) {
+    el.innerHTML = '<div class="vazio"><span class="vazio-icon">👨‍👩‍👧‍👦</span><div class="vazio-text">Nenhum membro cadastrado ainda.</div></div>';
+    return;
+  }
+  el.innerHTML = E.membros.map(m => {
+    const qtdApostas = JOGOS.filter(j => E.apostas[j.id]?.[m]).length;
+    return `<div class="apostador-item">
+      <div>
+        <div class="apostador-nome">${m}</div>
+        <div class="apostador-meta ${qtdApostas > 0 ? 'ok' : ''}">
+          ${qtdApostas > 0 ? `✓ ${qtdApostas} palpite${qtdApostas > 1 ? 's' : ''}` : 'Sem palpites ainda'}
+        </div>
+      </div>
+      <button onclick="removerMembro('${m}')" style="background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;font-size:18px;padding:4px;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function removerMembro(nome) {
+  if (!confirm(`Remover "${nome}"? Todos os palpites desta pessoa serão apagados.`)) return;
+  E.membros = E.membros.filter(m => m !== nome);
+  JOGOS.forEach(j => { if (E.apostas[j.id]) delete E.apostas[j.id][nome]; });
+  salvar();
+  atualizarSelectMembros();
+  renderFamilia();
+}
+
+// ===== APOSTAR =====
+function preConfirmar() {
+  const nome = document.getElementById('sel-apostador').value;
+  const br   = parseInt(document.getElementById('gols-br').value);
+  const adv  = parseInt(document.getElementById('gols-adv').value);
+  const val  = parseFloat(document.getElementById('val-aposta').value);
+
+  if (!nome) { alerta('alerta-form','erro','Selecione seu nome na lista.'); return; }
+  if (isNaN(br) || isNaN(adv)) { alerta('alerta-form','erro','Preencha o placar completo.'); return; }
+  if (!val || val <= 0) { alerta('alerta-form','erro','Informe um valor válido para a aposta.'); return; }
+  if (E.apostas[E.jogoAtual]?.[nome]) {
+    alerta('alerta-form','erro',`${nome} já apostou neste jogo!`); return;
+  }
+
+  const j = JOGOS.find(x => x.id === E.jogoAtual);
+  const dtAtual = E.jogoHorarios[E.jogoAtual] || j.dataHoraDefault;
+
+  E.tmp = { nome, br, adv, val, jogoId: E.jogoAtual, dtJogo: dtAtual };
+
+  document.getElementById('confirmar-resumo').innerHTML = `
+    <div style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.35);font-weight:800;text-transform:uppercase;margin-bottom:6px;">Apostador</div>
+    <div style="font-size:19px;font-weight:900;margin-bottom:16px;">${nome}</div>
+    <div style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.35);font-weight:800;text-transform:uppercase;margin-bottom:6px;">${j.fase} · Brasil vs ${j.adversario}</div>
+    <div style="font-size:52px;font-weight:900;letter-spacing:-2px;margin-bottom:16px;">🇧🇷 ${br} × ${adv} ${j.flag}</div>
+    <div style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.35);font-weight:800;text-transform:uppercase;margin-bottom:4px;">Valor</div>
+    <div style="font-size:24px;font-weight:900;color:var(--verde);">R$ ${val.toFixed(2).replace('.',',')}</div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+      <div style="font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);font-weight:800;text-transform:uppercase;margin-bottom:4px;">Resultado liberado após</div>
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.6);">${formatarDT(dtAtual)} + ~2h de jogo + 2h de bloqueio</div>
+    </div>
+  `;
+
+  limparAlerta('alerta-form');
+  abrirModal('modal-confirmar');
+}
+
+function salvarAposta() {
+  const { nome, br, adv, val, jogoId, dtJogo } = E.tmp;
+  if (!E.apostas[jogoId]) E.apostas[jogoId] = {};
+  E.apostas[jogoId][nome] = { br, adv, val };
+  if (!E.jogoHorarios[jogoId]) E.jogoHorarios[jogoId] = dtJogo;
+  salvar();
+  fecharModal('modal-confirmar');
+  atualizarStatus();
+  renderChips();
+
+  document.getElementById('gols-br').value = '0';
+  document.getElementById('gols-adv').value = '0';
+  document.getElementById('val-aposta').value = '';
+  document.getElementById('sel-apostador').value = '';
+
+  abrirModal('modal-ok');
+}
+
+// ===== RESULTADO =====
+function renderSelectRes() {
+  document.getElementById('sel-jogo-res').innerHTML =
+    '<option value="">Escolha o jogo...</option>' +
+    JOGOS.map(j => `<option value="${j.id}">${j.fase}: Brasil vs ${j.adversario}</option>`).join('');
+}
+
+function carregarJogoRes(id) {
+  const area = document.getElementById('res-area');
+  area.innerHTML = '';
+  if (!id) return;
+
+  const j = JOGOS.find(x => x.id === id);
+  const min = minutosParaLiberar(id);
+  const apostas = E.apostas[id] || {};
+  const dtHora = E.jogoHorarios[id] || j.dataHoraDefault;
+
+  if (min > 0) {
+    // BLOQUEADO
+    area.innerHTML = `
+      <div class="bloqueado-box">
+        <span class="bloqueado-icon">⏳</span>
+        <div class="bloqueado-title">Resultado Bloqueado</div>
+        <div class="bloqueado-sub">
+          O resultado de <strong>Brasil vs ${j.adversario}</strong> ficará disponível<br>
+          <strong style="color:var(--amarelo);">~${formatarDuracao(min)}</strong> a partir de agora.<br><br>
+          Liberação prevista: <strong>${formatarDT(new Date(tsLibera(id).getTime()).toISOString().slice(0,16))}</strong>
+        </div>
+      </div>
+      <div class="card mt10" style="margin-top:14px;">
+        <div class="card-title">🗓️ Ajustar horário do jogo</div>
+        <div class="campo">
+          <label>Data e hora de início (Horário de Brasília)</label>
+          <input type="datetime-local" id="inp-dt-jogo" value="${dtHora}">
+        </div>
+        <div id="alerta-dt"></div>
+        <button class="btn btn-amarelo" onclick="atualizarHorario('${id}')">Salvar Horário</button>
+      </div>`;
+    return;
+  }
+
+  // LIBERADO — mostrar formulário de resultado
+  if (!Object.keys(apostas).length) {
+    area.innerHTML = `<div class="card"><div class="vazio"><span class="vazio-icon">😔</span><div class="vazio-text">Nenhum palpite registrado para este jogo.</div></div></div>`;
+    return;
+  }
+
+  area.innerHTML = `
+    <div class="card card-amarelo">
+      <div class="card-title">📋 Placar Real do Jogo</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;font-weight:600;">Insira o placar oficial para calcular o vencedor.</div>
+      <div class="placar-row">
+        <div class="placar-side">
+          <div class="placar-label-mini">🇧🇷 Brasil</div>
+          <input class="placar-num" type="number" id="res-br" min="0" max="20" placeholder="0">
+        </div>
+        <div class="placar-sep">×</div>
+        <div class="placar-side">
+          <div class="placar-label-mini">${j.flag} ${j.adversario}</div>
+          <input class="placar-num" type="number" id="res-adv" min="0" max="20" placeholder="0">
+        </div>
+      </div>
+      <div id="alerta-res"></div>
+      <button class="btn btn-amarelo" onclick="calcular('${id}')">⚡ Calcular Vencedor</button>
+    </div>
+    <div id="resultado-final"></div>`;
+}
+
+function atualizarHorario(id) {
+  const val = document.getElementById('inp-dt-jogo').value;
+  if (!val) { alerta('alerta-dt','erro','Informe a data e hora do jogo.'); return; }
+  E.jogoHorarios[id] = val;
+  salvar();
+  renderChips();
+  alerta('alerta-dt','ok','Horário salvo! Recarregue o resultado para atualizar o bloqueio.');
+  setTimeout(() => carregarJogoRes(id), 1500);
+}
+
+function calcular(id) {
+  const resBr  = parseInt(document.getElementById('res-br').value);
+  const resAdv = parseInt(document.getElementById('res-adv').value);
+  if (isNaN(resBr) || isNaN(resAdv)) { alerta('alerta-res','erro','Insira o placar completo.'); return; }
+
+  const j = JOGOS.find(x => x.id === id);
+  const apostas = E.apostas[id] || {};
+  const total = Object.values(apostas).reduce((s, a) => s + a.val, 0);
+
+  const exatos = Object.entries(apostas).filter(([, a]) => a.br === resBr && a.adv === resAdv);
+  const premio = exatos.length ? total / exatos.length : 0;
+
+  let heroHtml = '';
+  if (exatos.length) {
+    const nomes = exatos.map(([n]) => n);
+    heroHtml = `
+      <div class="resultado-hero">
+        <span class="trophy-big pulse">${exatos.length > 1 ? '🏆🏆' : '🏆'}</span>
+        <div class="res-titulo">${exatos.length > 1 ? 'Vencedores!' : 'Vencedor!'}</div>
+        ${nomes.map(n => `<div class="res-nome">${n}</div>`).join('')}
+        <div class="placar-pill">
+          <span class="fl">🇧🇷</span><span class="num">${resBr}</span>
+          <span class="sep">×</span>
+          <span class="num">${resAdv}</span><span class="fl">${j.flag}</span>
+        </div>
+        <div class="res-titulo">Prêmio ${exatos.length > 1 ? 'por vencedor' : ''}</div>
+        <div class="res-premio">R$ ${premio.toFixed(2).replace('.',',')}</div>
+        ${total !== premio ? `<div class="res-pozo">Pozo total: R$ ${total.toFixed(2).replace('.',',')}</div>` : ''}
+      </div>`;
+  } else {
+    heroHtml = `
+      <div class="resultado-hero" style="border-color:rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);">
+        <span class="trophy-big">😬</span>
+        <div class="res-titulo">Ninguém acertou!</div>
+        <div class="placar-pill">
+          <span class="fl">🇧🇷</span><span class="num">${resBr}</span>
+          <span class="sep">×</span>
+          <span class="num">${resAdv}</span><span class="fl">${j.flag}</span>
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px;font-weight:700;">
+          Pozo de R$ ${total.toFixed(2).replace('.',',')} acumulado para o próximo jogo!
+        </div>
+      </div>`;
+  }
+
+  // Ranking
+  const entries = Object.entries(apostas).map(([nome, a]) => {
+    const exato   = a.br === resBr && a.adv === resAdv;
+    const parcial = !exato && (
+      (resBr > resAdv && a.br > a.adv) ||
+      (resBr < resAdv && a.br < a.adv) ||
+      (resBr === resAdv && a.br === a.adv)
+    );
+    return { nome, ...a, exato, parcial };
+  }).sort((a,b) => (b.exato - a.exato) || (b.parcial - a.parcial) || (b.val - a.val));
+
+  const rankingHtml = `
+    <div class="card">
+      <div class="card-title">📋 Todos os Palpites</div>
+      ${entries.map((e, i) => `
+        <div class="rk-item ${e.exato ? 'win' : ''}">
+          <div class="rk-pos">${i+1}</div>
+          <div class="rk-info">
+            <div class="rk-nome">${e.nome} ${e.exato ? '🏆' : ''}</div>
+            <div class="rk-palpite">
+              🇧🇷 ${e.br} × ${e.adv} ${j.flag}
+              <span class="rk-badge ${e.exato ? 'exato' : e.parcial ? 'parcial' : 'errou'}">
+                · ${e.exato ? '✓ EXATO' : e.parcial ? '≈ RESULTADO' : '✗ ERROU'}
+              </span>
+            </div>
+          </div>
+          <div class="rk-valor">R$ ${e.val.toFixed(2).replace('.',',')}</div>
+        </div>`).join('')}
+      <div style="display:flex;justify-content:space-between;padding-top:14px;margin-top:6px;border-top:1px solid rgba(255,255,255,0.07);font-size:12px;font-weight:800;">
+        <span style="color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;">Total apostado</span>
+        <span style="color:var(--amarelo);">R$ ${total.toFixed(2).replace('.',',')}</span>
+      </div>
+    </div>`;
+
+  document.getElementById('resultado-final').innerHTML = heroHtml + rankingHtml;
+  document.getElementById('resultado-final').classList.add('fu');
+  document.getElementById('resultado-final').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ===== UTILIDADES =====
+function mudarAba(aba) {
+  ['apostar','resultado','familia'].forEach(a => {
+    document.getElementById(`aba-${a}`).classList.toggle('hidden', a !== aba);
+  });
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('ativo', ['apostar','resultado','familia'][i] === aba);
+  });
+  if (aba === 'familia') renderFamilia();
+  if (aba === 'resultado') renderSelectRes();
+}
+
+function abrirModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function fecharModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function alerta(id, tipo, msg) {
+  document.getElementById(id).innerHTML =
+    `<div class="alerta alerta-${tipo === 'erro' ? 'erro' : tipo === 'ok' ? 'ok' : 'info'}">${tipo === 'erro' ? '⚠️' : '✓'} ${msg}</div>`;
+}
+function limparAlerta(id) {
+  const el = document.getElementById(id); if (el) el.innerHTML = '';
+}
+
+// Fechar modais clicando fora
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) fecharModal(o.id); });
+});
+
+// Enter em inputs de modal
+document.getElementById('inp-nome').addEventListener('keydown', e => { if (e.key === 'Enter') salvarNome(); });
+
+init();
+</script>
+</body>
+</html>
